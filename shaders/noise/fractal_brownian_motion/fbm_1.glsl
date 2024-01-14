@@ -195,26 +195,20 @@ float fbm(in vec2 st) {
 void main() { 
     vec2 st = gl_FragCoord.xy/u_resolution.xy;
 
-    // HUE/RAD/ANGLE
     vec2 toCenter = (0.5) - st;
     float angle = atan(toCenter.x, toCenter.y);
     float radius = length(toCenter) * 8.;
     float hue = angle / (3.14  * 2.0);
     vec3 hueRadAngleVec = vec3(hue, radius, angle);
 
-    
     st *= 1.;
-    
     // move space from the center to the vec2(0.0)
     st -= vec2(.5);
     // rotate the space
     st = rotate2d(sin(smoothTime(u_time * 0.005)) + (TWO_PI)) * st;
-    //st = rotate2d(sin(noise(TWO_PI) / PI) + smoothTime(u_time)) * st;
     // move it back to the original place
     st += vec2(.5);
     
-    
-
     float x = st.x;
     float myNoise  = mySpecialNoise(x);
     st *= 2.5;

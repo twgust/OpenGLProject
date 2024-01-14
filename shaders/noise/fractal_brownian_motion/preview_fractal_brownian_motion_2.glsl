@@ -71,7 +71,7 @@ float rand(float x){
 float random (vec2 st) {
     return fract(sin(dot(st.xy,
                          vec2(12.9898,78.233)))*
-        43758.5453123);
+        7344.5453123 * PI);
 }
 /** RANDOM_END **/
 
@@ -205,8 +205,7 @@ void main() {
     // move space from the center to the vec2(0.0)
     st -= vec2(.5);
     // rotate the space
-    st = rotate2d(sin(smoothTime(u_time * 0.005)) + (TWO_PI)) * st;
-    //st = rotate2d(sin(noise(TWO_PI) / PI) + smoothTime(u_time)) * st;
+    st = rotate2d(sin(smoothTime(u_time * 0.05)) + (TWO_PI)) * st;
     // move it back to the original place
     st += vec2(.5);
     
@@ -214,7 +213,7 @@ void main() {
 
     float x = st.x;
     float myNoise  = mySpecialNoise(x);
-    st *= 2.5;
+    st *= 2.25;
 
     vec2 point[5];
     point[0] = vec2(0.83,0.75);
@@ -247,20 +246,36 @@ void main() {
                 fbm(st + fbm(st + fbm(st + fbm(st)))) +
                 // 2) animate said noise 
                 sin(st.x + u_time);
+    // 2.1) set the secondaryCorePattern, this pattern is an outline of the core
+    float secondaryCorePattern = corePattern * 0.00005; 
+    // 3) set the desired color of the core pattern
+    vec3 patternPrimaryColor = vec3(0.8118, 0.3804, 0.6549);
+    // 3.1) assign and add the pattern to the color 
+    patternPrimaryColor += corePattern;
 
-    // set the desired color of the core pattern
-    vec3 patternColor = vec3(0.0, 1.0, 1.0);
-    // final pattern color 
-    patternColor += corePattern;
+    // 3.2) repeat for secondary outline color
+    vec3 patternSecondaryColor = vec3(0.2314, 0.949, 0.3765); 
+    patternSecondaryColor += secondaryCorePattern;   
 
-    vec3 background = vec3(0.0, 0.0, 0.0);    
-    vec3 myColor = mix(
-        patternColor,
-        background,
-        smoothstep(0.0, 1., corePattern)
+    vec3 bg = vec3(1.0, 0.9529, 0.9529);
+
+    // emphasis on primary pattern color, 
+    // primary color = main/bkg of pattern
+    // secondary color = outline
+    vec3 patternColorMix = mix(
+        patternPrimaryColor,
+        patternSecondaryColor,
+        smoothstep(0.0, .4, (corePattern))
+    );
+
+    // mix the patternColorMix with background,respect aggregate colors of patterns    
+    vec3 colorOut = mix(
+        patternColorMix,
+        bg,
+        smoothstep(0.0, 0.4, corePattern + secondaryCorePattern)
     );
     gl_FragColor = vec4(
-        vec3(myColor),
+        vec3(colorOut),
         1.0
     ); 
 }
