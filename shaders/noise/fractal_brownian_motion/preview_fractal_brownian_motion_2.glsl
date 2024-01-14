@@ -240,9 +240,6 @@ void main() {
     m_dist = second_distance;
     f *= first_distance * fbm(st * 0.5);
     f *= fourth_distance * fbm(st * 0.5);
-    // col *= sin(m_dist_vec[0] / m_dist_vec[1] + sin(fbm(point[2]) * 0.5));
-    // heartbeat 
-    // col *= radius * radius * radius
 
     // fractal brownian motion
     float corePattern = 
@@ -252,11 +249,11 @@ void main() {
                 sin(st.x + u_time);
 
     // set the desired color of the core pattern
-    vec3 patternColor = vec3(0.0, 1.0, 0.4314);
+    vec3 patternColor = vec3(0.0, 1.0, 1.0);
     // final pattern color 
     patternColor += corePattern;
 
-    vec3 background = vec3(0.1725, 0.2039, 0.2039);    
+    vec3 background = vec3(0.0, 0.0, 0.0);    
     vec3 myColor = mix(
         patternColor,
         background,

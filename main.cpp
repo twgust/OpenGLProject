@@ -19,14 +19,13 @@ const int sizeXi = SquareInt;
 const int sizeYi = 480;
 // modify to choose shader
 const std::vector<std::string> items = {
-    "../shaders/gradient/gradient.glsl", 
+    "../shaders/noise/fractal_brownian_motion/fbm_1.glsl", 
     "../shaders/yinyang/yinyang.glsl",
     "../shaders/yinyangg/yinyang2.glsl",
     "../shaders/?/example.glsl"
 };
 
 GLuint parseProgram(int selectedItem, std::vector<GLuint> shaderPrograms) {
-    GLuint currentShaderProgram; 
     return shaderPrograms[selectedItem];
 }
 

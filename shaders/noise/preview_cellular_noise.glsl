@@ -97,7 +97,7 @@ float organicNoise(in float x) {
 float mySpecialNoise(in float x){ 
     float i = floor(x / smoothTime(u_time));
     float f = fract(x);
-    float y = rand(i);
+    float y = rand(i) / organicNoise(u_time);
     float u = f * f * (3.0 - 2.0 * f ); // custom cubic curve
     y = mix(rand(i), rand(i + 1.0), u); // using it in the interpolation
     return y;
@@ -156,39 +156,6 @@ mat2 rotate2d(float _angle){
 }
 /** TRANSFORMATION_END **/
 
-float fractalBrownianMotionOne(in float x) { 
-    const int octaves = 10;
-    float lacunarity = 2.0;
-    float gain = 0.5;
-    
-    float amplitude = 0.5;
-    float frequency = 1.0;
-
-    float y = 0.5;
-
-    for(int i = 0; i < octaves; i++) {
-        y += amplitude * organicNoise(frequency * x);
-        frequency *= lacunarity;
-        amplitude *= gain;
-    }
-    return y;
-}
-
-float fbm(in vec2 st) { 
-    const int octaves = 5;
-
-    float value = 0.0;
-    float amplitude = 1.;
-    float frequency = 0.0;
-
-    for (int i = 0; i < octaves; i++) {
-        value += amplitude * noise(st);
-        st *= 2.0;
-        amplitude *= 0.5;
-    }
-    return  value;
-}
-
 void main() { 
     vec2 st = gl_FragCoord.xy / u_resolution.xy;
 
@@ -201,18 +168,16 @@ void main() {
 
     
     st *= 1.;
-    
     // move space from the center to the vec2(0.0)
-    st -= vec2(.5);
+    st -= vec2(0.9);
     // rotate the space
-    st = rotate2d(sin(smoothTime(u_time * 0.005)) + (TWO_PI)) * st;
+    st = rotate2d( sin(u_time) / radius + PI) * st;
     //st = rotate2d(sin(noise(TWO_PI) / PI) + smoothTime(u_time)) * st;
     // move it back to the original place
-    st += vec2(.5);
-    
+    st += vec2(0.1);
     
 
-    float x = st.x;
+    float x = sin(st.x);
     float myNoise  = mySpecialNoise(x);
     st *= 2.5;
 
@@ -225,46 +190,61 @@ void main() {
     float m_dist_vec[5];
     float alpha;
     float m_dist = 1.;  // initialize dist var to minimum distance
+    for (int i = 0; i < 5; i++) {
+        point[i] += noise(st) * 
+            sin(smoothTime(u_time * 0.75)) - 
+            cos(smoothTime(u_time * 0.75));
+        point[i] += organicNoise(sin(smoothTime(u_time * 0.65)));
 
-    float first_distance = distance(st * radius, point[0]);
-    float second_distance = distance(st * radius, point[1]);
-    float third_distance = distance(st *radius, point[2]);
-    float fourth_distance = distance(st * radius, point[3]);
-    m_dist_vec[0] = first_distance;
-    m_dist_vec[1] = second_distance;
-    m_dist_vec[2] = third_distance;
-    m_dist_vec[3] = fourth_distance;
+        float dist = distance(st, point[i]);
+        // Keep the closer distance by updating the dist
+        m_dist = min(m_dist, dist);
+        m_dist_vec[i] = m_dist;
+        vec3 backgroundColor = vec3(0.0, 0.0, 0.0) ;
+        vec3 bubbleColor = vec3(0.3333, 0.3176, 0.7294);
 
-    float f = st.x;
-    f *= second_distance * fbm(st * 0.5);
-    m_dist = second_distance;
-    f *= first_distance * fbm(st * 0.5);
-    f *= fourth_distance * fbm(st * 0.5);
-    // col *= sin(m_dist_vec[0] / m_dist_vec[1] + sin(fbm(point[2]) * 0.5));
-    // heartbeat 
-    // col *= radius * radius * radius
+        vec3 mixOne = mix(
+            bubbleColor, 
+            backgroundColor, 
+            smoothstep(0.0,1.0, m_dist_vec[2])
+        );
 
-    // fractal brownian motion
-    float corePattern = 
-                // 1) generate pattern from fractal noise
-                fbm(st + fbm(st + fbm(st + fbm(st)))) +
-                // 2) animate said noise 
-                sin(st.x + u_time);
+        vec3 mixTwo = mix(
+            bubbleColor, 
+            backgroundColor, 
+            smoothstep(0.0,.5, m_dist_vec[4])
+        );
+        vec3 mixThree = mix(
+            bubbleColor, 
+            backgroundColor, 
+            smoothstep(0.0, .5, m_dist_vec[4])
+        );
 
-    // set the desired color of the core pattern
-    vec3 patternColor = vec3(0.0, 1.0, 0.4314);
-    // final pattern color 
-    patternColor += corePattern;
+        vec3 mixFour = mix(
+            bubbleColor, 
+            backgroundColor, 
+            smoothstep(0.0, .5, m_dist_vec[4])
+        );
 
-    vec3 background = vec3(0.1725, 0.2039, 0.2039);    
-    vec3 myColor = mix(
-        patternColor,
-        background,
-        smoothstep(0.0, 1., corePattern)
-    );
-    gl_FragColor = vec4(
-        vec3(myColor),
-        1.0
-    ); 
+        // Blend all color mixtures
+        vec3 colorText = 
+            mix(
+                mix(
+                    mix(
+                        mixOne, 
+                        mixTwo,
+                         m_dist_vec[1]
+                    ),
+                mixThree,
+                m_dist_vec[1]
+                ), 
+            mixFour,
+            m_dist_vec[1]
+        );
+        gl_FragColor = vec4(
+            colorText,
+            1.0
+        ); 
+    }
 }
 

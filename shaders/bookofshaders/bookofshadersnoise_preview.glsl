@@ -7,35 +7,20 @@ uniform vec2 u_mouse;
 #define pow
 #define TWO_PI 6.28318530718
 #define PI 3.141592653589793
+#define smoothTime
 
 // Parameters
-float speedFactor = 5.; // Adjust this to speed up or slow down the time
-float repetitionFactor = 50.; // The duration before repeating
-float startOffset = 25.0; // Starting offset for the time
+float speedFactor = 0.25; // Adjust this to speed up or slow down the time
+float repetitionFactor = 1000.0; // The duration before repeating
+float startOffset = 2.0; // Starting offset for the time
 
 // Function to calculate smoothTime
-// Function to calculate smoothTime
-float smoothTime() {
-    // Parameters
-    float speedFactor = 0.25; // Adjust this to speed up or slow down the time
-    float repetitionFactor = 1000.0; // The duration before repeating
-    float startOffset = 2.0; // Starting offset for the time
-
+float myFunction() {
     float scaledTime = (u_time + startOffset) * speedFactor;
     float phase = mod(scaledTime, repetitionFactor); // Create a repeating pattern
     float triangularWave = 2.0 * abs(phase - repetitionFactor * 0.5) / repetitionFactor;
     float smoothtime = triangularWave * repetitionFactor;
     return smoothtime;
-}
-
-float gain(float x, float k) {
-    float a = 0.5 * pow(2.0 *((x<0.5) ?x:1.0-x), k);
-    return (x<0.5) ?a:1.0-a;
-}
-
-float sinc(float x, float k) {
-    float a = PI * ((k*x -1.0));
-    return sin(a)/a;
 }
 
 vec2 truchetPattern(in vec2 _st, in float _index){
@@ -51,7 +36,7 @@ vec2 truchetPattern(in vec2 _st, in float _index){
 }
 
 float rand(float x){
-    float y = fract(sin(x)* 200000.0);
+    float y = fract(sin(x)* 20.0);
     return y;
 }
 
@@ -75,33 +60,14 @@ void main() {
     vec3 hueRadAngleVec = vec3(hue, radius, angle);
 
 
-
-    float speedFactor = .2; // Adjust this to speed up or slow down the time
-    float repetitionFactor = 6.0; // The duration before repeating
-    float startOffset = 0.9; // Starting offset for the time
-
-    float scaledTime = (u_time + startOffset) * speedFactor;
-    float phase = mod(scaledTime, repetitionFactor); // Create a repeating pattern
-    float triangularWave = 2.0 * abs(phase - repetitionFactor * 0.5) / repetitionFactor;
-    float smoothtime = triangularWave * repetitionFactor;
-    st *= 2.5;
     /** DISTANCE BEGIN **/
     // Cell positions
-    int elements = 25;
-    vec2 point[25];
-    float m_dist = 1.;
-    for (int i = 0; i < 25; i++) {
-        // rain
-       // point[i] = vec2(rand(PI) , (rand(float(i) / st.x))) * (u_resolution / 0.5) * (st.y + sin(0.25)) * (st.x + sin(u_time * floor(0.3)) );
-    point[i] = vec2(rand(st.x + 1.), rand(pow(radius,float(i ) * radius) + st.y) * sin(float(i))) * ( u_resolution/ u_mouse);
-   // point[24] = sin(radius) * (u_mouse / u_resolution)  * (cos(smoothtime * radius + float(i))  - sin(st.y));
-
-    float dist = distance(st, point[i]);
-        // Keep the closer distance by updating the dist
-    m_dist = min(m_dist, dist);
-    }
-    color += m_dist;
-
+    vec2 point[5];
+    point[0] = vec2(0.83,0.75);
+    point[1] = vec2(0.60,0.07);
+    point[2] = vec2(0.28,0.64);
+    point[3] =  vec2(0.31,0.26);
+    point[4] = u_mouse/u_resolution;
 
     vec2 myExamplePoints[5];
     myExamplePoints[0] = vec2(0.83,0.75);
@@ -109,8 +75,14 @@ void main() {
     myExamplePoints[2] = vec2(0.28,0.64);
     myExamplePoints[3] =  vec2(0.31,0.26);
     myExamplePoints[4] = u_mouse / u_resolution;
+    
 
-
+    float m_dist = 1.;  // initialize dist var to minimum distance
+    for (int i = 0; i < 5; i++) {
+        float dist = distance(st, myExamplePoints[i]);
+        // Keep the closer distance by updating the dist
+        m_dist = min(m_dist, dist);
+    }
 
     
     /*
@@ -126,6 +98,7 @@ void main() {
     vec2 ipos = floor(st);  // get the integer coords
     vec2 fpos = fract(st);  
     // Draw the min distance (distance field)
+    color += m_dist;
     /** DISTANCE END **/
 
     // Show isolines
