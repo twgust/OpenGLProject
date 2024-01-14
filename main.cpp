@@ -20,6 +20,7 @@ const int sizeYi = 480;
 // modify to choose shader
 const std::vector<std::string> items = {
     "../shaders/noise/fractal_brownian_motion/fbm_1.glsl", 
+    "../shaders/noise/fractal_brownian_motion/fbm_2.glsl", 
     "../shaders/yinyang/yinyang.glsl",
     "../shaders/yinyangg/yinyang2.glsl",
     "../shaders/?/example.glsl"
